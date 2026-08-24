@@ -36,30 +36,125 @@ module.exports = async (req, res) => {
           kitchen = rows[0];
         }
       }
-
-      // Fallback search by name
-      if (!kitchen && !isUuid) {
-        const fallbackUrl = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&name=ilike.*${encodeURIComponent(targetKey)}*&limit=1`;
-        const fallbackResp = await fetch(fallbackUrl, { headers });
-        if (fallbackResp.ok) {
-          const fbRows = await fallbackResp.json();
-          if (Array.isArray(fbRows) && fbRows.length > 0) {
-            kitchen = fbRows[0];
-          }
-        }
-      }
     } catch (err) {
       console.error('Error querying kitchen for smart link:', err);
     }
   }
 
-  const kitchenId = kitchen?.id || targetKey || '';
-  const kitchenName = kitchen?.name || 'مطبخ بيتي على طبلية';
-  const avatarUrl = kitchen?.avatar_url || DEFAULT_AVATAR;
+  // Handle case when kitchen is NOT found / invalid link
+  if (!kitchen) {
+    const notFoundHtml = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>المطبخ غير متوفر | تطبيق طبلية</title>
+  <meta name="theme-color" content="#ec0048">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Alexandria', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #FAF6F8;
+      color: #1A1216;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      text-align: center;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 1px solid #EFE7EB;
+      border-radius: 24px;
+      padding: 36px 24px;
+      max-width: 400px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .brand-pill {
+      display: inline-block;
+      background: #FFF0F4;
+      border: 1px solid #FDE6EC;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ec0048;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1A1216;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #6B5D63;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .btn-primary {
+      display: block;
+      background: #ec0048;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 16px 20px;
+      border-radius: 14px;
+      width: 100%;
+      text-align: center;
+      font-family: inherit;
+    }
+    .footer-text {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #A59BA0;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand-pill">طبلية · أكل بيتي مصري</div>
+    <h1>المطبخ غير متوفر</h1>
+    <p>هذا الرابط غير صحيح أو أن المطبخ لم يعد متاحاً على التطبيق. يمكنك تصفح باقي المطابخ عبر تطبيق طبلية.</p>
+    <a id="storeBtn" class="btn-primary" href="${ANDROID_STORE_URL}" target="_blank">
+      تحميل تطبيق طبلية
+    </a>
+  </div>
+  <p class="footer-text">طبلية · منصة الأكل البيتي المصري الأصيل</p>
+  <script>
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var storeBtn = document.getElementById('storeBtn');
+    if (isIOS && storeBtn) {
+      storeBtn.href = '${IOS_STORE_URL}';
+      storeBtn.textContent = 'تحميل من App Store';
+    }
+  </script>
+</body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return res.status(404).send(notFoundHtml);
+  }
+
+  const kitchenId = kitchen.id;
+  const kitchenName = kitchen.name || 'مطبخ على طبلية';
+  const avatarUrl = kitchen.avatar_url || DEFAULT_AVATAR;
 
   const pageTitle = `${kitchenName} | تطبيق طبلية`;
   const pageDescription = `اطلب ألذ أكل بيتي طازج من ${kitchenName} عبر تطبيق طبلية. حمل التطبيق واطلب الآن!`;
-  const pageUrl = `https://tablya-web.vercel.app/k/${targetKey}`;
+  const pageUrl = `https://tablya-web.vercel.app/k/${kitchen.slug || targetKey}`;
   const appSchemeUrl = `tablya://mom/${kitchenId}`;
 
   // Clean solid color QR code for desktop
@@ -287,14 +382,30 @@ module.exports = async (req, res) => {
       storeBtn.textContent = 'تحميل من Google Play';
     }
 
+    var appLaunchAttempted = false;
+    var appOpened = false;
+
+    window.addEventListener('pagehide', function() { appOpened = true; });
+    window.addEventListener('blur', function() { appOpened = true; });
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) appOpened = true;
+    });
+
     function launchApp() {
+      appOpened = false;
+      appLaunchAttempted = true;
+      var startTime = Date.now();
+
       if (isIOS) {
+        // Direct custom scheme trigger without overlapping timer
         window.location.href = appScheme;
         setTimeout(function() {
-          if (!document.hidden && !document.webkitHidden) {
+          // If the app didn't open and page is still focused after 2.5s, direct to App Store
+          var elapsed = Date.now() - startTime;
+          if (!appOpened && !document.hidden && elapsed < 3500) {
             window.location.href = iosStore;
           }
-        }, 1800);
+        }, 2500);
       } else if (isAndroid) {
         var intentUrl = 'intent://mom/${kitchenId}#Intent;scheme=tablya;package=com.tablya.app;S.browser_fallback_url=' + encodeURIComponent(androidStore) + ';end';
         window.location.href = intentUrl;
@@ -302,13 +413,6 @@ module.exports = async (req, res) => {
         window.location.href = appScheme;
       }
     }
-
-    // Auto-launch on mobile entry (e.g. from Instagram / Social Media)
-    window.onload = function() {
-      if (isIOS || isAndroid) {
-        launchApp();
-      }
-    };
   </script>
 </body>
 </html>`;
