@@ -21,15 +21,13 @@ module.exports = async (req, res) => {
       };
 
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetKey);
-      let queryFilter = '';
+      let url = '';
 
       if (isUuid) {
-        queryFilter = `or=(id.eq.${targetKey},slug.eq.${encodeURIComponent(targetKey)})`;
+        url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&id=eq.${targetKey}&limit=1`;
       } else {
-        queryFilter = `or=(slug.eq.${encodeURIComponent(targetKey)},id.ilike.${encodeURIComponent(targetKey)}*)`;
+        url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&slug=eq.${encodeURIComponent(targetKey)}&limit=1`;
       }
-
-      const url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&${queryFilter}&limit=1`;
 
       const response = await fetch(url, { headers });
       if (response.ok) {
