@@ -56,9 +56,6 @@ module.exports = async (req, res) => {
   const kitchenId = kitchen?.id || targetKey || '';
   const kitchenName = kitchen?.name || 'مطبخ بيتي على طبلية';
   const avatarUrl = kitchen?.avatar_url || DEFAULT_AVATAR;
-  const ratingNum = kitchen?.rating ? Number(kitchen.rating).toFixed(1) : '٥.٠';
-  const ratingCount = kitchen?.rating_count ? Number(kitchen.rating_count) : 0;
-  const locationText = kitchen?.location || 'أكل بيتي طازج وتوصيل سريع';
 
   const pageTitle = `${kitchenName} | تطبيق طبلية`;
   const pageDescription = `اطلب ألذ أكل بيتي طازج من ${kitchenName} عبر تطبيق طبلية. حمل التطبيق واطلب الآن!`;
@@ -168,38 +165,8 @@ module.exports = async (req, res) => {
       font-size: 22px;
       font-weight: 800;
       color: #1A1216;
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-    .kitchen-meta {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      font-size: 13px;
-      color: #6B5D63;
-    }
-    .rating-badge {
-      display: inline-block;
-      background: #FFE7DA;
-      color: #FF6B2C;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-    }
-    .location-pill {
-      display: inline-block;
-      background: #FFF0F4;
-      color: #ec0048;
-      border-radius: 99px;
-      padding: 6px 14px;
-      font-size: 13px;
-      font-weight: 600;
       margin-bottom: 24px;
-      max-width: 90%;
-      line-height: 1.4;
+      line-height: 1.3;
     }
     .btn-primary {
       display: block;
@@ -284,15 +251,6 @@ module.exports = async (req, res) => {
     </div>
 
     <h1 class="kitchen-name">${escapeHtml(kitchenName)}</h1>
-
-    <div class="kitchen-meta">
-      <span class="rating-badge">${ratingNum}</span>
-      ${ratingCount > 0 ? `<span>(${ratingCount} تقييم)</span>` : ''}
-    </div>
-
-    <div class="location-pill">
-      ${escapeHtml(locationText)}
-    </div>
 
     <!-- Open App Button -->
     <button class="btn-primary" onclick="launchApp()">
