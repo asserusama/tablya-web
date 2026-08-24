@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
         }
       }
 
-      // Fallback search by name if not found
+      // Fallback search by name
       if (!kitchen && !isUuid) {
         const fallbackUrl = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&name=ilike.*${encodeURIComponent(targetKey)}*&limit=1`;
         const fallbackResp = await fetch(fallbackUrl, { headers });
@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
   const pageUrl = `https://tablya-web.vercel.app/k/${targetKey}`;
   const appSchemeUrl = `tablya://mom/${kitchenId}`;
 
-  // Generate QR Code URL for Desktop viewers
+  // Clean solid color QR code for desktop
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pageUrl)}&color=ec0048&bgcolor=FFFFFF`;
 
   const html = `<!DOCTYPE html>
@@ -128,45 +128,20 @@ module.exports = async (req, res) => {
       justify-content: center;
       padding: 24px 16px;
       text-align: center;
-      position: relative;
-      overflow-x: hidden;
-    }
-    /* Subtle ambient background glow */
-    body::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 350px;
-      background: radial-gradient(circle, rgba(236, 0, 72, 0.08) 0%, rgba(250, 246, 248, 0) 70%);
-      pointer-events: none;
-      z-index: 0;
     }
     .card {
-      position: relative;
-      z-index: 1;
       background: #FFFFFF;
       border: 1px solid #EFE7EB;
-      border-radius: 28px;
-      padding: 36px 24px;
-      max-width: 420px;
+      border-radius: 24px;
+      padding: 32px 24px;
+      max-width: 400px;
       width: 100%;
-      box-shadow: 0 16px 40px rgba(236, 0, 72, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
       display: flex;
       flex-direction: column;
       align-items: center;
-      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
     }
     .brand-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      display: inline-block;
       background: #FFF0F4;
       border: 1px solid #FDE6EC;
       padding: 6px 14px;
@@ -174,42 +149,23 @@ module.exports = async (req, res) => {
       font-size: 13px;
       font-weight: 700;
       color: #ec0048;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .avatar-wrapper {
-      position: relative;
-      width: 96px;
-      height: 96px;
+      width: 90px;
+      height: 90px;
       margin-bottom: 16px;
     }
     .avatar-img {
       width: 100%;
       height: 100%;
-      border-radius: 26px;
+      border-radius: 24px;
       object-fit: cover;
-      border: 3px solid #FFF0F4;
+      border: 1px solid #EFE7EB;
       background: #FAF6F8;
-      box-shadow: 0 8px 24px rgba(236, 0, 72, 0.15);
-    }
-    .badge-verified {
-      position: absolute;
-      bottom: -4px;
-      left: -4px;
-      background: #12B76A;
-      color: #FFFFFF;
-      border-radius: 50%;
-      width: 26px;
-      height: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 800;
-      border: 2.5px solid #FFFFFF;
-      box-shadow: 0 2px 6px rgba(18, 183, 106, 0.3);
     }
     .kitchen-name {
-      font-size: 23px;
+      font-size: 22px;
       font-weight: 800;
       color: #1A1216;
       margin-bottom: 8px;
@@ -219,76 +175,64 @@ module.exports = async (req, res) => {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 8px;
+      margin-bottom: 12px;
       font-size: 13px;
       color: #6B5D63;
     }
     .rating-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      display: inline-block;
       background: #FFE7DA;
       color: #FF6B2C;
       font-weight: 700;
-      padding: 3px 9px;
+      padding: 3px 10px;
       border-radius: 8px;
       font-size: 13px;
     }
     .location-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      display: inline-block;
       background: #FFF0F4;
       color: #ec0048;
       border-radius: 99px;
-      padding: 8px 16px;
+      padding: 6px 14px;
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 26px;
+      margin-bottom: 24px;
       max-width: 90%;
       line-height: 1.4;
     }
     .btn-primary {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      display: block;
       background: #ec0048;
       color: #FFFFFF;
       text-decoration: none;
       font-weight: 700;
-      font-size: 16px;
-      padding: 16px 24px;
-      border-radius: 16px;
+      font-size: 15px;
+      padding: 16px 20px;
+      border-radius: 14px;
       width: 100%;
       border: none;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(236, 0, 72, 0.32);
-      transition: all 0.2s ease;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       font-family: inherit;
+      text-align: center;
     }
     .btn-primary:active {
-      transform: scale(0.98);
       background: #C4003A;
     }
     .btn-secondary {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      display: block;
       background: #FAF6F8;
       color: #1A1216;
       text-decoration: none;
       font-weight: 600;
       font-size: 14px;
       padding: 14px 20px;
-      border-radius: 16px;
+      border-radius: 14px;
       width: 100%;
       border: 1px solid #EFE7EB;
-      transition: all 0.2s ease;
       font-family: inherit;
+      text-align: center;
     }
     .btn-secondary:active {
       background: #EFE7EB;
@@ -296,28 +240,26 @@ module.exports = async (req, res) => {
     .qr-container {
       display: none;
       margin-top: 20px;
-      padding: 18px;
-      background: #FFFDFE;
-      border: 1.5px dashed #FDE6EC;
-      border-radius: 18px;
+      padding: 16px;
+      background: #FFFFFF;
+      border: 1px solid #EFE7EB;
+      border-radius: 16px;
       align-items: center;
       justify-content: center;
       flex-direction: column;
     }
     .qr-container img {
-      width: 140px;
-      height: 140px;
-      border-radius: 8px;
+      width: 130px;
+      height: 130px;
+      border-radius: 6px;
     }
     .qr-label {
       color: #6B5D63;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 500;
       margin-top: 10px;
     }
     .footer-text {
-      position: relative;
-      z-index: 1;
       margin-top: 24px;
       font-size: 12px;
       color: #A59BA0;
@@ -334,37 +276,32 @@ module.exports = async (req, res) => {
 
   <div class="card">
     <div class="brand-pill">
-      <span>🍲</span>
-      <span>طبلية · أكل بيتي مصري</span>
+      طبلية · أكل بيتي مصري
     </div>
 
     <div class="avatar-wrapper">
       <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(kitchenName)}" class="avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">
-      <div class="badge-verified">✓</div>
     </div>
 
     <h1 class="kitchen-name">${escapeHtml(kitchenName)}</h1>
 
     <div class="kitchen-meta">
-      <span class="rating-badge">⭐ ${ratingNum}</span>
+      <span class="rating-badge">${ratingNum}</span>
       ${ratingCount > 0 ? `<span>(${ratingCount} تقييم)</span>` : ''}
     </div>
 
     <div class="location-pill">
-      <span>📍</span>
-      <span>${escapeHtml(locationText)}</span>
+      ${escapeHtml(locationText)}
     </div>
 
     <!-- Open App Button -->
     <button class="btn-primary" onclick="launchApp()">
-      <span>فتح في تطبيق طبلية</span>
-      <span style="font-size: 18px;">↗</span>
+      فتح في تطبيق طبلية
     </button>
 
     <!-- Download App Store / Google Play Button -->
     <a id="storeBtn" class="btn-secondary" href="${ANDROID_STORE_URL}" target="_blank">
-      <span>تحميل التطبيق من المتجر</span>
-      <span>📲</span>
+      تحميل التطبيق من المتجر
     </a>
 
     <!-- Desktop QR Code -->
@@ -386,10 +323,10 @@ module.exports = async (req, res) => {
 
     if (isIOS) {
       storeBtn.href = iosStore;
-      storeBtn.innerHTML = '<span>تحميل من App Store</span> <span>🍏</span>';
+      storeBtn.textContent = 'تحميل من App Store';
     } else if (isAndroid) {
       storeBtn.href = androidStore;
-      storeBtn.innerHTML = '<span>تحميل من Google Play</span> <span>🤖</span>';
+      storeBtn.textContent = 'تحميل من Google Play';
     }
 
     function launchApp() {
