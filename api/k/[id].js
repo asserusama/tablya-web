@@ -3,7 +3,7 @@ const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
   'sb_publishable_L_DxM09RGWNuH0DXGkzpTw_Rb8aForN';
 
-const IOS_STORE_URL = 'https://apps.apple.com/app/id6741444000';
+const IOS_STORE_URL = 'https://apps.apple.com/eg/app/tablya/id6794864990?l=ar';
 const ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.tablya.app';
 const DEFAULT_AVATAR = 'https://optfnuhujqezzsrvlwdc.supabase.co/storage/v1/object/public/branding/appicon.png';
 
@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
 
   <!-- iOS App Deep Linking Meta -->
   <meta property="al:ios:url" content="${escapeHtml(appSchemeUrl)}">
-  <meta property="al:ios:app_store_id" content="6741444000">
+  <meta property="al:ios:app_store_id" content="6794864990">
   <meta property="al:ios:app_name" content="Tablya">
 
   <!-- Android App Deep Linking Meta -->

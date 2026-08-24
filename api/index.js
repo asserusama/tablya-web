@@ -1,4 +1,4 @@
-const IOS_STORE_URL = 'https://apps.apple.com/app/id6741444000';
+const IOS_STORE_URL = 'https://apps.apple.com/eg/app/tablya/id6794864990?l=ar';
 const ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.tablya.app';
 
 module.exports = (req, res) => {
