@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
         }
       }
 
-      // If not found by slug/id, fallback search by name
+      // Fallback search by name if not found
       if (!kitchen && !isUuid) {
         const fallbackUrl = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&name=ilike.*${encodeURIComponent(targetKey)}*&limit=1`;
         const fallbackResp = await fetch(fallbackUrl, { headers });
@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
   const appSchemeUrl = `tablya://mom/${kitchenId}`;
 
   // Generate QR Code URL for Desktop viewers
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(pageUrl)}&color=FD004C&bgcolor=FFFFFF`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pageUrl)}&color=ec0048&bgcolor=FFFFFF`;
 
   const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -78,7 +78,7 @@ module.exports = async (req, res) => {
   <!-- Primary Meta Tags -->
   <meta name="title" content="${escapeHtml(pageTitle)}">
   <meta name="description" content="${escapeHtml(pageDescription)}">
-  <meta name="theme-color" content="#FD004C">
+  <meta name="theme-color" content="#ec0048">
 
   <!-- Open Graph / Facebook / Instagram / WhatsApp -->
   <meta property="og:type" content="website">
@@ -108,7 +108,7 @@ module.exports = async (req, res) => {
   <!-- Alexandria Arabic Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     * {
@@ -119,65 +119,82 @@ module.exports = async (req, res) => {
     }
     body {
       font-family: 'Alexandria', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0D0E11;
-      color: #FFFFFF;
+      background: #FAF6F8;
+      color: #1A1216;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 16px;
+      padding: 24px 16px;
       text-align: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+    /* Subtle ambient background glow */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(236, 0, 72, 0.08) 0%, rgba(250, 246, 248, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
     }
     .card {
-      background: #181A20;
-      border: 1px solid #262A34;
+      position: relative;
+      z-index: 1;
+      background: #FFFFFF;
+      border: 1px solid #EFE7EB;
       border-radius: 28px;
-      padding: 32px 24px;
+      padding: 36px 24px;
       max-width: 420px;
       width: 100%;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 16px 40px rgba(236, 0, 72, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
       display: flex;
       flex-direction: column;
       align-items: center;
-      animation: fadeIn 0.4s ease-out;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .brand-logo {
+    .brand-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(253, 0, 76, 0.12);
-      border: 1px solid rgba(253, 0, 76, 0.3);
+      background: #FFF0F4;
+      border: 1px solid #FDE6EC;
       padding: 6px 14px;
       border-radius: 99px;
       font-size: 13px;
       font-weight: 700;
-      color: #FD004C;
+      color: #ec0048;
       margin-bottom: 24px;
     }
     .avatar-wrapper {
       position: relative;
-      width: 104px;
-      height: 104px;
-      margin-bottom: 18px;
+      width: 96px;
+      height: 96px;
+      margin-bottom: 16px;
     }
     .avatar-img {
       width: 100%;
       height: 100%;
-      border-radius: 50%;
+      border-radius: 26px;
       object-fit: cover;
-      border: 3px solid #FD004C;
-      background: #262A34;
-      box-shadow: 0 8px 24px rgba(253, 0, 76, 0.25);
+      border: 3px solid #FFF0F4;
+      background: #FAF6F8;
+      box-shadow: 0 8px 24px rgba(236, 0, 72, 0.15);
     }
     .badge-verified {
       position: absolute;
-      bottom: 2px;
-      left: 2px;
+      bottom: -4px;
+      left: -4px;
       background: #12B76A;
       color: #FFFFFF;
       border-radius: 50%;
@@ -186,13 +203,15 @@ module.exports = async (req, res) => {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
-      border: 2px solid #181A20;
+      font-size: 13px;
+      font-weight: 800;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(18, 183, 106, 0.3);
     }
     .kitchen-name {
-      font-size: 22px;
+      font-size: 23px;
       font-weight: 800;
-      color: #FFFFFF;
+      color: #1A1216;
       margin-bottom: 8px;
       line-height: 1.3;
     }
@@ -200,34 +219,42 @@ module.exports = async (req, res) => {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 16px;
       font-size: 13px;
-      color: #9E9E9E;
+      color: #6B5D63;
     }
     .rating-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: rgba(245, 158, 11, 0.12);
-      color: #F59E0B;
+      background: #FFE7DA;
+      color: #FF6B2C;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 3px 9px;
       border-radius: 8px;
-      border: 1px solid rgba(245, 158, 11, 0.25);
-    }
-    .location-text {
-      color: #9E9E9E;
       font-size: 13px;
-      margin-bottom: 24px;
-      line-height: 1.5;
+    }
+    .location-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFF0F4;
+      color: #ec0048;
+      border-radius: 99px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 26px;
+      max-width: 90%;
+      line-height: 1.4;
     }
     .btn-primary {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      background: #FD004C;
+      background: #ec0048;
       color: #FFFFFF;
       text-decoration: none;
       font-weight: 700;
@@ -237,58 +264,64 @@ module.exports = async (req, res) => {
       width: 100%;
       border: none;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(253, 0, 76, 0.35);
+      box-shadow: 0 8px 24px rgba(236, 0, 72, 0.32);
       transition: all 0.2s ease;
       margin-bottom: 12px;
+      font-family: inherit;
     }
     .btn-primary:active {
       transform: scale(0.98);
-      background: #E00043;
+      background: #C4003A;
     }
     .btn-secondary {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      background: #262A34;
-      color: #E0E0E0;
+      background: #FAF6F8;
+      color: #1A1216;
       text-decoration: none;
       font-weight: 600;
       font-size: 14px;
       padding: 14px 20px;
       border-radius: 16px;
       width: 100%;
-      border: 1px solid #333846;
+      border: 1px solid #EFE7EB;
       transition: all 0.2s ease;
+      font-family: inherit;
     }
     .btn-secondary:active {
-      background: #333846;
+      background: #EFE7EB;
     }
     .qr-container {
       display: none;
       margin-top: 20px;
-      padding: 16px;
-      background: #FFFFFF;
-      border-radius: 16px;
+      padding: 18px;
+      background: #FFFDFE;
+      border: 1.5px dashed #FDE6EC;
+      border-radius: 18px;
       align-items: center;
       justify-content: center;
       flex-direction: column;
     }
     .qr-container img {
-      width: 160px;
-      height: 160px;
+      width: 140px;
+      height: 140px;
       border-radius: 8px;
     }
     .qr-label {
-      color: #333333;
+      color: #6B5D63;
       font-size: 12px;
       font-weight: 600;
-      margin-top: 8px;
+      margin-top: 10px;
     }
     .footer-text {
+      position: relative;
+      z-index: 1;
       margin-top: 24px;
       font-size: 12px;
-      color: #666666;
+      color: #A59BA0;
+      font-weight: 500;
     }
     @media (min-width: 768px) {
       .qr-container {
@@ -300,9 +333,9 @@ module.exports = async (req, res) => {
 <body>
 
   <div class="card">
-    <div class="brand-logo">
+    <div class="brand-pill">
       <span>🍲</span>
-      <span>تطبيق طبلية</span>
+      <span>طبلية · أكل بيتي مصري</span>
     </div>
 
     <div class="avatar-wrapper">
@@ -317,7 +350,10 @@ module.exports = async (req, res) => {
       ${ratingCount > 0 ? `<span>(${ratingCount} تقييم)</span>` : ''}
     </div>
 
-    <p class="location-text">📍 ${escapeHtml(locationText)}</p>
+    <div class="location-pill">
+      <span>📍</span>
+      <span>${escapeHtml(locationText)}</span>
+    </div>
 
     <!-- Open App Button -->
     <button class="btn-primary" onclick="launchApp()">
@@ -334,7 +370,7 @@ module.exports = async (req, res) => {
     <!-- Desktop QR Code -->
     <div class="qr-container">
       <img src="${qrCodeUrl}" alt="QR Code">
-      <div class="qr-label">امسح الكود بكاميرا الموبايل للطلب مباشرة</div>
+      <div class="qr-label">امسح الكود بكاميرا الموبايل لفتح المطبخ مباشرة</div>
     </div>
   </div>
 
