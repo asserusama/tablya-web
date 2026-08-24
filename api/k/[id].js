@@ -15,18 +15,21 @@ module.exports = async (req, res) => {
 
   if (targetKey) {
     try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetKey);
       const headers = {
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       };
 
-      let url = '';
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetKey);
+      let queryFilter = '';
+
       if (isUuid) {
-        url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&or=(id.eq.${targetKey},slug.eq.${encodeURIComponent(targetKey)})&limit=1`;
+        queryFilter = `or=(id.eq.${targetKey},slug.eq.${encodeURIComponent(targetKey)})`;
       } else {
-        url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&slug=eq.${encodeURIComponent(targetKey)}&limit=1`;
+        queryFilter = `or=(slug.eq.${encodeURIComponent(targetKey)},id.ilike.${encodeURIComponent(targetKey)}*)`;
       }
+
+      const url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&${queryFilter}&limit=1`;
 
       const response = await fetch(url, { headers });
       if (response.ok) {
@@ -36,7 +39,7 @@ module.exports = async (req, res) => {
         }
       }
 
-      // If not found by slug, fallback search by name
+      // If not found by slug/id, fallback search by name
       if (!kitchen && !isUuid) {
         const fallbackUrl = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&name=ilike.*${encodeURIComponent(targetKey)}*&limit=1`;
         const fallbackResp = await fetch(fallbackUrl, { headers });
@@ -61,7 +64,7 @@ module.exports = async (req, res) => {
 
   const pageTitle = `${kitchenName} | تطبيق طبلية`;
   const pageDescription = `اطلب ألذ أكل بيتي طازج من ${kitchenName} عبر تطبيق طبلية. حمل التطبيق واطلب الآن!`;
-  const pageUrl = `https://tablya.vercel.app/k/${targetKey}`;
+  const pageUrl = `https://tablya-web.vercel.app/k/${targetKey}`;
   const appSchemeUrl = `tablya://mom/${kitchenId}`;
 
   // Generate QR Code URL for Desktop viewers

@@ -2,6 +2,14 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/.well-known/apple-app-site-association",
+      "destination": "/api/aasa"
+    },
+    {
+      "source": "/.well-known/assetlinks.json",
+      "destination": "/api/assetlinks"
+    },
+    {
       "source": "/k/:id",
       "destination": "/api/k/[id]"
     },
@@ -10,12 +18,8 @@
       "destination": "/api/k/[id]"
     },
     {
-      "source": "/.well-known/apple-app-site-association",
-      "destination": "/api/aasa"
-    },
-    {
-      "source": "/.well-known/assetlinks.json",
-      "destination": "/api/assetlinks"
+      "source": "/:id((?!api|\\.well-known).+)",
+      "destination": "/api/k/[id]"
     }
   ],
   "headers": [
