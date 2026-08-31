@@ -1,45 +1,130 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://optfnuhujqezzsrvlwdc.supabase.co';
+// PostgREST Authorization Bearer requires a valid JWT anon key
 const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
-  'sb_publishable_L_DxM09RGWNuH0DXGkzpTw_Rb8aForN';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZudWh1anFlenpzcnZsd2RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MjU2NDgsImV4cCI6MjEwMDQwMTY0OH0.h6LtYvvRcIxBlsuKdkmaNpV8S9O5OXAvtsDUIDtKkag';
 
 const IOS_STORE_URL = 'https://apps.apple.com/eg/app/tablya/id6794864990?l=ar';
 const ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.tablya.app';
 const DEFAULT_AVATAR = 'https://optfnuhujqezzsrvlwdc.supabase.co/storage/v1/object/public/branding/appicon.png';
 
-module.exports = async (req, res) => {
-  const { id } = req.query;
-  const targetKey = (id || '').trim();
+async function fetchKitchen(targetKey) {
+  if (!targetKey) return null;
 
-  let kitchen = null;
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  };
 
-  if (targetKey) {
+  const cleanKey = targetKey.trim();
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanKey);
+  const isCompactUuid = /^[0-9a-f]{32}$/i.test(cleanKey);
+  const isPrefixHex = /^[0-9a-f]{4,12}$/i.test(cleanKey);
+
+  // Exclude sensitive cook credentials (phone_number, instapay_handle, push_token)
+  const selectCols = 'id,name,avatar_url,location,rating,rating_count,slug,is_active,review_status';
+
+  // 1. If standard UUID format, search by exact ID
+  if (isUuid) {
     try {
-      const headers = {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      };
-
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetKey);
-      let url = '';
-
-      if (isUuid) {
-        url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&id=eq.${targetKey}&limit=1`;
-      } else {
-        url = `${SUPABASE_URL}/rest/v1/kitchens?select=id,name,avatar_url,location,rating,rating_count,slug,is_active&slug=eq.${encodeURIComponent(targetKey)}&limit=1`;
-      }
-
-      const response = await fetch(url, { headers });
-      if (response.ok) {
-        const rows = await response.json();
-        if (Array.isArray(rows) && rows.length > 0) {
-          kitchen = rows[0];
-        }
+      const url = `${SUPABASE_URL}/rest/v1/kitchens?select=${selectCols}&id=eq.${encodeURIComponent(cleanKey)}&limit=1`;
+      const res = await fetch(url, { headers });
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) return rows[0];
       }
     } catch (err) {
-      console.error('Error querying kitchen for smart link:', err);
+      console.error('Error fetching by UUID:', err);
     }
   }
+
+  // 2. If 32-char hex (compact UUID), convert to standard UUID and search
+  if (isCompactUuid) {
+    try {
+      const formattedUuid = `${cleanKey.slice(0, 8)}-${cleanKey.slice(8, 12)}-${cleanKey.slice(12, 16)}-${cleanKey.slice(16, 20)}-${cleanKey.slice(20)}`;
+      const url = `${SUPABASE_URL}/rest/v1/kitchens?select=${selectCols}&id=eq.${encodeURIComponent(formattedUuid)}&limit=1`;
+      const res = await fetch(url, { headers });
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) return rows[0];
+      }
+    } catch (err) {
+      console.error('Error fetching by compact UUID:', err);
+    }
+  }
+
+  // 3. Search by slug (case-insensitive)
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/kitchens?select=${selectCols}&slug=ilike.${encodeURIComponent(cleanKey)}&limit=1`;
+    const res = await fetch(url, { headers });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) return rows[0];
+    }
+  } catch (err) {
+    console.error('Error fetching by slug:', err);
+  }
+
+  // 4. If looks like a hex ID prefix (e.g. 6 chars from ID), search by ID prefix
+  if (isPrefixHex) {
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/kitchens?select=${selectCols}&id=ilike.${encodeURIComponent(cleanKey)}%&limit=1`;
+      const res = await fetch(url, { headers });
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) return rows[0];
+      }
+    } catch (err) {
+      console.error('Error fetching by ID prefix:', err);
+    }
+  }
+
+  // 5. Fallback: Search by kitchen name
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/kitchens?select=${selectCols}&name=eq.${encodeURIComponent(cleanKey)}&limit=1`;
+    const res = await fetch(url, { headers });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) return rows[0];
+    }
+  } catch (err) {
+    console.error('Error fetching by name:', err);
+  }
+
+  return null;
+}
+
+module.exports = async (req, res) => {
+  let targetKey = req.query?.id || req.query?.slug || req.query?.key;
+
+  // Fallback: extract targetKey from req.url path if rewrite didn't set req.query
+  if (!targetKey && req.url) {
+    try {
+      const cleanPath = req.url.split('?')[0];
+      const segments = cleanPath.split('/').filter(Boolean);
+      if (segments.length > 0) {
+        targetKey = segments[segments.length - 1];
+      }
+    } catch (_) {}
+  }
+
+  targetKey = (targetKey || '').trim();
+  try {
+    targetKey = decodeURIComponent(targetKey);
+  } catch (_) {}
+
+  // Sanitize: strip any path separators or unwanted control characters
+  targetKey = targetKey.replace(/^[\/\\]+|[\/\\]+$/g, '').trim();
+
+  let kitchen = null;
+  if (targetKey) {
+    kitchen = await fetchKitchen(targetKey);
+  }
+
+  // Set standard security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   // Handle case when kitchen is NOT found / invalid link
   if (!kitchen) {
