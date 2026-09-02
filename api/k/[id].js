@@ -6,7 +6,20 @@ const SUPABASE_ANON_KEY =
 
 const IOS_STORE_URL = 'https://apps.apple.com/eg/app/tablya/id6794864990?l=ar';
 const ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.tablya.app';
-const DEFAULT_AVATAR = 'https://optfnuhujqezzsrvlwdc.supabase.co/storage/v1/object/public/branding/appicon.png';
+const DEFAULT_AVATAR = 'https://media.appleboy.tech/branding/appicon.png';
+const LEGACY_MEDIA_PREFIX =
+  'https://optfnuhujqezzsrvlwdc.supabase.co/storage/v1/object/public/tablya-media';
+const LEGACY_BRANDING_PREFIX =
+  'https://optfnuhujqezzsrvlwdc.supabase.co/storage/v1/object/public/branding';
+
+function rewriteLegacyMediaUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  return url
+    .split(LEGACY_MEDIA_PREFIX)
+    .join('https://media.appleboy.tech')
+    .split(LEGACY_BRANDING_PREFIX)
+    .join('https://media.appleboy.tech/branding');
+}
 
 async function fetchKitchen(targetKey) {
   if (!targetKey) return null;
@@ -235,7 +248,7 @@ module.exports = async (req, res) => {
 
   const kitchenId = kitchen.id;
   const kitchenName = kitchen.name || 'مطبخ على طبلية';
-  const avatarUrl = kitchen.avatar_url || DEFAULT_AVATAR;
+  const avatarUrl = rewriteLegacyMediaUrl(kitchen.avatar_url) || DEFAULT_AVATAR;
 
   const pageTitle = `${kitchenName} | تطبيق طبلية`;
   const pageDescription = `اطلب ألذ أكل بيتي طازج من ${kitchenName} عبر تطبيق طبلية. حمل التطبيق واطلب الآن!`;
