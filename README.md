@@ -19,8 +19,7 @@ Official smart link redirector, OpenGraph preview generator, and Universal Links
 1. Push this `tablya-web` folder to a GitHub repository (e.g. `github.com/asserusama/tablya-web`).
 2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
 3. Add Environment Variables (Optional - defaults are already configured in code):
-   - `SUPABASE_URL`: `https://optfnuhujqezzsrvlwdc.supabase.co`
-   - `SUPABASE_ANON_KEY`: `sb_publishable_L_DxM09RGWNuH0DXGkzpTw_Rb8aForN`
+   - `TABLYA_API_URL`: `https://api.appleboy.tech/api`
 4. Click **Deploy**.
 5. Set your project name to `tablya` (so your domain is `tablya.vercel.app`).
 
